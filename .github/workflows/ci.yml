@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Download archives from Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
       - name: Generate _checksums.txt
         run: shasum -a 256 * | sort --key 2 --stable > _checksums.txt
         working-directory: artifact
