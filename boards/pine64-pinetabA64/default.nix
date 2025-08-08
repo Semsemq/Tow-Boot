@@ -10,9 +10,9 @@ in
 {
   device = {
     manufacturer = "PINE64";
-    name = "Pinephone (A64)";
-    identifier = "pine64-pinephoneA64";
-    productPageURL = "https://www.pine64.org/pinephone/";
+    name = "PineTab (A64)";
+    identifier = "pine64-pinetabA64";
+    productPageURL = "https://www.pine64.org/pinetab/";
     supportLevel = "supported";
   };
 
@@ -22,7 +22,7 @@ in
   };
 
   Tow-Boot = {
-    defconfig = "pinephone_defconfig";
+    defconfig = "pinetab_defconfig";
     phone-ux = {
       enable = true;
       blind = true;

@@ -1,7 +1,7 @@
 {
   Tow-Boot = {
-    releaseNumber = "007";
-    releaseRC = "-rc3";
+    releaseNumber = "008";
+    releaseRC = "";
     releaseIdentifier = "-pre";
   };
 }

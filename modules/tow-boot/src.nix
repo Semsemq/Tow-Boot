@@ -55,7 +55,12 @@ in
   config = {
     Tow-Boot = {
       uBootVersion = mkDefault "2023.07";
-      tag = mkDefault "tb-${uBootVersion}-${releaseNumber}${releaseRC}";
+      tag =
+        let
+          releaseNumber = "007"; # No tag yet in the split tree
+        in
+        mkDefault "tb-${uBootVersion}-${releaseNumber}${releaseRC}"
+      ;
 
       knownHashes = {
         U-Boot = {
@@ -70,11 +75,12 @@ in
           "2023.01" = "sha256-aUI7rTgPiaCRZjbonm3L0uRRLVhDCNki0QOdHkMxlQ8=";
           "2023.04" = "sha256-4xyskVRf9BtxzsXYwir9aVZFzW4qRCzNrKzWBTQGk0E=";
           "2023.07" = "sha256-EukhtGaucxzbw1Xmgyt/IryQsBrs7vmIb5iquns5QwA=";
+          "2023.10" = "sha256-4A5sbwFOBGEBc50I0G8yiBHOvPWuEBNI9AnLvVXOaQA=";
+          "2024.01" = "sha256-uZYR8e0je/NUG9yENLaMlqbgWWcGH5kkQ8swqr6+9bM=";
+          "2024.04" = "sha256-GKhT/jn6160DqQzC1Cda6u1tppc13vrDSSuAUIhD3Uo=";
         };
         Tow-Boot = {
-          "tb-2023.07-007-rc1" = "sha256-vAB7MHn5VZEo3fPR7zWADpUMJ14Una90JrXRSPI9T9U=";
-          "tb-2023.07-007-rc2" = "sha256-ENE2bSPUfdFqXLmZFBWfYS/sJ6sXqPr2QjO0XdFzido=";
-          "tb-2023.07-007-rc3" = "sha256-/eKHISaHLiNikk4gWoOSIPd2D3xiG1A/TSGUPEzhfZQ=";
+          "tb-2023.07-007" = "sha256-qEVvvnKy3fdFmU7Qn1U2PMqhf8p228v6+4XtkVGgQgk=";
         };
       };
 

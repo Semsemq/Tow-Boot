@@ -15,7 +15,7 @@ let
 
   evaluatedStructuredConfig = import ../../support/nix/eval-kconfig.nix rec {
     inherit lib;
-    inherit (pkgs) path;
+    inherit (pkgs) path writeShellScript;
     version = config.Tow-Boot.uBootVersion;
     structuredConfig = (config.Tow-Boot.structuredConfigHelper version);
   };
@@ -116,45 +116,46 @@ in
             "out"
           ];
 
-          postPatch = ''
-            patchShebangs scripts
-            patchShebangs tools
-            patchShebangs arch/arm/mach-rockchip
-          '' +
-          ''
-            # Drop that from the exposed version, always.
-            # We use releases, any extra qualifier is owned by us.
-            sed -i -e 's/^EXTRAVERSION =.*/EXTRAVERSION =/' Makefile
-          '' +
-            # FIXME: review how we patch this out... (I don't like it)
-          ''
-            echo ':: Patching baud rate'
-            (PS4=" $ "
-            for f in configs/*rk3399* configs/*rk3328*; do
-              (set -x
-              sed -i -e 's/CONFIG_BAUDRATE=1500000/CONFIG_BAUDRATE=115200/' "$f"
+          prePatch =
+            ''
+              cp -prf "$PWD" "$PWD.orig"
+            ''
+          ;
+
+          postPatch =
+            ''
+              echo ":: Dropping EXTRAVERSION from Makefile"
+              # Drop that from the exposed version, always.
+              # We use releases, any extra qualifier is owned by us.
+              sed -i -e 's/^EXTRAVERSION =.*/EXTRAVERSION =/' Makefile
+            ''
+            + (lib.optionalString (!buildUBoot) ''
+              echo ":: Sneaking in boardIdentifier in the Tow-Boot environment"
+              substituteInPlace include/tow-boot_env.h \
+                --replace "@boardIdentifier@" "${boardIdentifier}"
+            '')
+            + postPatch
+            # We're making the build diff before patching shebangs so Nix
+            # store paths don't leak into the output.
+            # It's also an implementation detail.
+            + ''
+              (
+              echo ":: Snapshotting build diff"
+              set -x
+              # Clear up any garbage left behind while patching
+              find . -name '*.orig' -delete
+              # `diff` exits 1 if there's differences...
+              diff --new-file --recursive --unified "$PWD.orig/" "$PWD/" > ../build.diff || :
               )
-            done
-            for f in arch/arm/dts/*rk3399*.dts* arch/arm/dts/*rk3328*.dts*; do
-              (set -x
-              sed -i -e 's/serial2:1500000n8/serial2:115200n8/' "$f"
+            ''
+            + ''
+              (
+              echo ":: Patching shebangs to Nix store paths"
+              patchShebangs scripts
+              patchShebangs tools
+              patchShebangs arch/arm/mach-rockchip
               )
-            done
-            )
-            echo ':: Patching Rockchip SPI SPL offset'
-            (PS4=" $ "
-            for f in arch/arm/dts/*rk3399*.dts*; do
-              (set -x
-              sed -i -e 's/u-boot,spl-payload-offset\s*=\s*<0x60000>/u-boot,spl-payload-offset = <0x80000>/' "$f"
-              )
-            done
-            )
-          ''
-          + (lib.optionalString (!buildUBoot) ''
-            substituteInPlace include/tow-boot_env.h \
-              --replace "@boardIdentifier@" "${boardIdentifier}"
-          '')
-          + postPatch
+            ''
           ;
 
           buildInputs = buildInputs;
@@ -163,6 +164,7 @@ in
             buildPackages.bc
             buildPackages.bison
             buildPackages.dtc
+            buildPackages.findutils
             buildPackages.flex
             buildPackages.openssl
             buildPackages.swig
@@ -180,7 +182,7 @@ in
           hardeningDisable = [ "all" ];
 
           makeFlags = [
-            "DTC=dtc"
+            "DTC=${lib.getExe buildPackages.dtc}"
             "CROSS_COMPILE=${stdenv.cc.targetPrefix}"
           ] ++ makeFlags;
 
@@ -218,11 +220,26 @@ in
 
           installPhase = ''
             runHook preInstall
-            mkdir -p $out
-            mkdir -p $out/config
-            cp .config $out/config/$variant.config
+
+            mkdir -vp $out
+            mkdir -vp $out/config
+
+            echo ":: Copying config files"
+            make $makeFlags "''${makeFlagsArray[@]}" savedefconfig
+
+            cp -v .config $out/config/$variant.config
+            cp -v defconfig $out/config/$variant.newdefconfig
+            cp -v "configs/${defconfig}" $out/config/$variant.defconfig
+
+            echo ":: Copying build diff"
+
+            mkdir -vp $out/diff
+            cp -v "../build.diff" $out/diff/$variant.build.diff
+
+            echo ":: Copying output binaries"
             mkdir -p $out/binaries
             ${installPhase}
+
             if test -e $out/binaries; then
               (
               echo ":: Adding uSWID data"

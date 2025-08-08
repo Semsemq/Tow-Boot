@@ -60,9 +60,12 @@ in
           bright = "\\e[1m";
         in
         lib.mkIf (!config.Tow-Boot.buildUBoot) (
-          freeform ''"${reset}Please press [${bright}ESCAPE${reset}] or [${bright}CTRL+C${reset}] to enter the boot menu."''
+          freeform ''"${reset}Please press [${bright}ESCAPE${reset}] or [${bright}CTRL+C${reset}] to enter the boot menu in %ds."''
         )
       ;
+
+      # Normalize baud rate across all platforms
+      BAUDRATE = freeform "115200";
 
       # And this ends up causing the menu to be used on ESCAPE (or CTRL+C)
       AUTOBOOT_USE_MENUKEY = yes;
