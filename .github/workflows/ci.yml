@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Download archives from Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
       - name: Generate _checksums.txt
         run: shasum -a 256 * | sort --key 2 --stable > _checksums.txt
         working-directory: artifact
@@ -91,4 +91,4 @@ jobs:
         with:
           files: artifact/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ ghp_Gf9eEiQYa5i3eMfBQURBCmuRh5XB0d2HoYb }}
