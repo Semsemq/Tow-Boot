@@ -91,5 +91,4 @@ jobs:
         with:
           files: artifact/*
         env:
-          GITHUB_TOKEN: ${{ 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
- }}
+          GITHUB_TOKEN: ${{ ghp_Gf9eEiQYa5i3eMfBQURBCmuRh5XB0d2HoYb }}
